@@ -1,0 +1,113 @@
+
+@import "sprite.scss";
+
+.select-fake
+{
+    border:   1px solid #000;
+    cursor:   default;
+    position: relative;
+
+    .select-label
+    {
+        white-space:   nowrap;
+        overflow:      hidden;
+        text-overflow: ellipsis;
+        padding:       0 10px;
+        line-height:   19px;
+
+    } // .select-label
+
+    .select-button
+    {
+        position:        absolute;
+        width:           20px;
+        height:          100%;
+        left:            auto;
+        top:             0;
+        right:           0;
+        bottom:          0;
+        z-index:         2;
+        display:         flex;
+        align-items:     center;
+        justify-content: center;
+
+        &:before
+        {
+            @include sprite($ico-combo-closed);
+            
+            content:          '';
+            display:          block;
+            width:            13px;
+            height:           9px;
+            transform-origin: 50% 50%;
+            transition:       0.3s transform ease-in-out;
+
+        } // &:before
+
+    } // .select-button
+
+    &.opened
+    {
+        .select-button
+        {
+            &:before
+            {
+                transform: rotate(-180deg);
+
+            } // &:before
+
+        } // .select-button
+
+    } // &.opened
+
+} // .select-fake
+
+.select-fake-menu-holder
+{
+    position:    absolute;
+    left:        -9999px;
+    top:         -9999px;
+    width:       0;
+    height:      0;
+    overflow:    visible;
+
+    &.open-up
+    {
+        .select-fake-menu
+        {
+            top:    auto;
+            bottom: 0;
+
+        } // .select-fake-menu
+
+    } // &.open-up
+
+} // .select-fake-menu-holder
+
+.select-fake-menu
+{
+    border:     1px solid #000;
+    position:   absolute;
+    z-index:    1;
+    left:       0;
+    top:        0;
+    bottom:     auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 0;
+    transition: 0.3s max-height ease-in-out;
+
+    .select-fake-menu-item
+    {
+        padding: 2px 10px;
+        cursor:  default;
+
+        &:hover, &.selected
+        {
+            background-color: gainsboro;
+
+        } // &:hover
+
+    } // .select-fake-menu-item
+
+} // .select-fake-menu
