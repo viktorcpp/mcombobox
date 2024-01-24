@@ -2,7 +2,7 @@
 const fsio        = require('fs');
 const gulp        = require('gulp');
 const del         = require('del');
-const gulp_sass   = require('gulp-sass');
+const gulp_sass   = require('gulp-sass')(require('sass'));
 const sass_glob   = require('gulp-sass-glob');
 const {series}    = require('gulp');
 const {watch}     = require('gulp');
@@ -76,7 +76,7 @@ function build_html()
 
 
 function build_js()
-{   
+{
     return browserify({ entries: [ `${PATHs.SRC_SCRIPTS}main.js` ] })
         .transform(babelify.configure({ presets : ["@babel/preset-env"] }))
         .bundle()
@@ -85,24 +85,6 @@ function build_js()
         .pipe(gulp.dest( PATHs.DEST_SCRIPTS ));
     
 } // build_js
-
-
-function build_sprites_png()
-{
-    let sprite_data = gulp.src( `${PATHs.SRC_SPRITES_PNG}*` )
-        .pipe( spritesmith({
-            imgName:   'sprite.png',
-            cssName:   '_sprite.scss',
-            cssFormat: 'scss',
-            padding:   2,
-            imgPath:   '../images/sprite.png'
-        }));
-    let _sprite_img = sprite_data.img.pipe( gulp.dest( PATHs.DEST_IMAGES ) );
-    let _sprite_css = sprite_data.css.pipe( gulp.dest( PATHs.SRC_SCSS ) );
-        
-    return merge( _sprite_img, _sprite_css );
-    
-} // build_sprites_png
 
 
 function build_sass()
@@ -122,7 +104,10 @@ function gulp_server()
     gulp.src( `./${PATHs.DEST_HTML}` )
         .pipe(webserver({
             livereload: false,
+            //directoryListing: true,
             open: true,
+            //fallback: `index.html`
+            //path: `/${PATHs.DEST_HTML}index.html`
         }));
 
 } // gulp_server
@@ -138,14 +123,11 @@ function gulp_server_standalone()
 
 function build_watch()
 {
-    gulp.series( build_html, build_js, build_sprites_png, build_sass, gulp_server )();
+    gulp.series( build_html, build_js, build_sass, gulp_server )();
 
     watch( [ `${PATHs.SRC_HTML}*.twig`, `${PATHs.SRC_HTML}partials/*.twig` ], build_html );
     watch( `${PATHs.SRC_SCRIPTS}`,     build_js );
-    watch( `${PATHs.SRC_SPRITES_PNG}`, build_sprites_png );
     watch( `${PATHs.SRC_SCSS}`,        build_sass );
-
-    //gulp_server();
     
 } // build_watch_debug
 
