@@ -61,7 +61,8 @@ function SetBuildType( build_type )
     {
         fsio.mkdirSync(`${build_type}/`);
     }
-}
+    
+} // SetBuildType
 
 
 function build_html()
@@ -73,6 +74,38 @@ function build_html()
         .pipe( gulp.dest( PATHs.DEST_HTML ) );
     
 } // build_html
+
+
+function build_files()
+{
+    del( [ `${PATHs.DEST_FILES}*`, `!${PATHs.DEST_FILES}` ] );
+    
+    gulp.src( [ `${PATHs.SRC_MAIN}favicon.png` ] )
+        .pipe( gulp.dest( PATHs.DEST_MAIN ) );
+    
+    return gulp.src( [ `${PATHs.SRC_FILES}*` ] )
+        .pipe( gulp.dest( PATHs.DEST_FILES ) );
+    
+} // build_files
+
+
+function build_fonts()
+{
+    return gulp.src( [ `${PATHs.SRC_FONTS}*` ] )
+        .pipe( gulp.dest( PATHs.DEST_FONTS ) );
+    
+} // build_fonts
+
+
+function build_images()
+{
+    gulp.src( [ `${PATHs.SRC_IMAGES}*.svg` ] )
+        .pipe( gulp.dest( PATHs.DEST_IMAGES ) );
+    
+    return gulp.src( [ `${PATHs.SRC_IMAGES}*` ] )
+        .pipe( gulp.dest( PATHs.DEST_IMAGES ) );
+    
+} // build_images
 
 
 function build_js()
@@ -87,14 +120,54 @@ function build_js()
 } // build_js
 
 
+function build_sprites_png()
+{
+    let sprite_data = gulp.src( `${PATHs.SRC_SPRITES_PNG}*` )
+        .pipe( spritesmith({
+            imgName:   'sprite.png',
+            cssName:   '_sprite.scss',
+            cssFormat: 'scss',
+            padding:   2,
+            imgPath:   '../images/sprite.png'
+        }));
+    let _sprite_img = sprite_data.img.pipe( gulp.dest( PATHs.DEST_IMAGES ) );
+    let _sprite_css = sprite_data.css.pipe( gulp.dest( PATHs.SRC_SCSS ) );
+        
+    return merge( _sprite_img, _sprite_css );
+    
+} // build_sprites_png
+
+function build_sprites_svg()
+{
+    return gulp.src( `${PATHs.SRC_SPRITES_SVG}*.svg` )
+        .pipe(svg_sprite({
+                mode:
+                {
+                    stack:
+                    {
+                        sprite: "../sprite.svg"
+                    },
+                    //view: true,
+                    example: true
+                }
+            }
+        ))
+        .pipe( gulp.dest( PATHs.DEST_IMAGES ) );
+    
+}
+
+
 function build_sass()
 {
     del( [ `${PATHs.DEST_CSS}*.css`, `!${PATHs.DEST_CSS}` ] );
 
+    gulp.src( [ `${PATHs.SRC_SCSS}*.css` ] )
+        .pipe( gulp.dest( PATHs.DEST_CSS ) );
+    
     return gulp.src( [ `${PATHs.SRC_SCSS}main.scss` ] )
-      .pipe( sass_glob() )
-      .pipe( gulp_sass() )
-      .pipe( gulp.dest( PATHs.DEST_CSS ) );
+        .pipe( sass_glob() )
+        .pipe( gulp_sass() )
+        .pipe( gulp.dest( PATHs.DEST_CSS ) );
     
 } // build_sass
 
@@ -103,11 +176,8 @@ function gulp_server()
 {
     gulp.src( `./${PATHs.DEST_HTML}` )
         .pipe(webserver({
-            livereload: false,
-            //directoryListing: true,
+            livereload: true,
             open: true,
-            //fallback: `index.html`
-            //path: `/${PATHs.DEST_HTML}index.html`
         }));
 
 } // gulp_server
@@ -123,13 +193,20 @@ function gulp_server_standalone()
 
 function build_watch()
 {
-    gulp.series( build_html, build_js, build_sass, gulp_server )();
+    gulp.series( build_html, build_files, build_fonts, build_images, build_js, build_sprites_png, build_sprites_svg, build_sass, gulp_server )();
 
     watch( [ `${PATHs.SRC_HTML}*.twig`, `${PATHs.SRC_HTML}partials/*.twig` ], build_html );
+    watch( `${PATHs.SRC_FILES}`,       build_files );
+    watch( `${PATHs.SRC_FONTS}`,       build_fonts );
+    watch( `${PATHs.SRC_IMAGES}`,      build_images );
     watch( `${PATHs.SRC_SCRIPTS}`,     build_js );
+    watch( `${PATHs.SRC_SPRITES_PNG}`, build_sprites_png );
+    watch( `${PATHs.SRC_SPRITES_SVG}`, build_sprites_svg );
     watch( `${PATHs.SRC_SCSS}`,        build_sass );
+
+    //gulp_server();
     
-} // build_watch_debug
+} // build_watch
 
 
 function build_watch_debug()
