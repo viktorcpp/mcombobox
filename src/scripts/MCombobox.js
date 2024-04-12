@@ -5,7 +5,7 @@ export default class MCombobox
     {
         this.options                    = {};
         this.options.max_menu_items     = 5;
-        this.options.sel_main           = ".form-item-select select";
+        this.options.sel_main           = "select";
 
         this.options.cls_fake_main      = "select-fake";
         this.options.cls_fake_label     = "select-label";
@@ -20,9 +20,8 @@ export default class MCombobox
 
         document.mcbox_opened = [];
 
-    } // constructor
-
-
+        window.mcombobox = this;
+    }
 
     Init( new_options = null )
     {
@@ -37,9 +36,7 @@ export default class MCombobox
 
         window.addEventListener( "resize", this._OnResize );
 
-    } // Init
-
-
+    }
 
     _CreateSelect( select )
     {
@@ -84,7 +81,7 @@ export default class MCombobox
 
             _option.addEventListener( "click", this._OnMenuItemTap.call( this, _obj ) );
 
-        } // 
+        }
 
         select.parentElement.appendChild(_obj.menu_hold);
 
@@ -104,9 +101,7 @@ export default class MCombobox
         _obj.menu.childNodes[select.selectedIndex].classList.add( this.options.cls_fake_selected );
         _obj.main_label.innerText = _obj.menu.childNodes[select.selectedIndex].innerText;
 
-    } // _CreateSelect
-
-
+    }
 
     _OnSelectChange(e)
     {
@@ -123,14 +118,12 @@ export default class MCombobox
 
         _obj.menu.scrollTop = _obj.menu.childNodes[0].offsetHeight * this.selectedIndex;
 
-    } // _OnSelectChange
+    }
 
+    _OnMainTap( _obj ) {
+        return (e)=> {
+            e.stopPropagation();
 
-
-    _OnMainTap( _obj )
-    {
-        return (e)=>
-        {
             _obj.main.classList.toggle( this.options.cls_fake_opened );
 
             let _max_top = document.documentElement.scrollTop + window.innerHeight;
@@ -139,7 +132,7 @@ export default class MCombobox
             {
                 let _offset = _obj.main.getBoundingClientRect();
                 let _left   = _offset.left;
-                let _top    = _offset.top  + _obj.main.offsetHeight;
+                let _top    = _offset.top  + _obj.main.offsetHeight + window.scrollY;
 
                 if( _top + _obj.menu.offsetHeight > _max_top )
                 {
@@ -155,7 +148,8 @@ export default class MCombobox
 
                 document.addEventListener( "click", this._OnBodyTap );
 
-            } // 
+                _obj.menu_hold.style["width"] = _obj.main.getBoundingClientRect().width + 'px';
+            }
             else
             {
                 _obj.menu_hold.style["left"]       = "-9999px";
@@ -163,19 +157,14 @@ export default class MCombobox
                 _obj.menu     .style["max-height"] = 0;
 
                 document.mcbox_opened.splice( document.mcbox_opened.indexOf(_obj), 1 );
+            }
+        }
+    }
 
-            } // 
+    _OnMenuItemTap( _obj ) {
+        return (e)=> {
+            e.stopPropagation();
 
-        } // 
-
-    } // _OnMainTap
-
-
-
-    _OnMenuItemTap( _obj )
-    {
-        return (e)=>
-        {
             let _self = window.mcombobox;
 
             _obj.main.classList.remove( this.options.cls_fake_opened );
@@ -198,34 +187,26 @@ export default class MCombobox
 
             e.target.classList.add( _self.options.cls_fake_selected );
         }
+    }
 
-    } // _OnMenuItemTap
-
-
-
-    _OnBodyTap(e)
-    {
+    _OnBodyTap(e) {
         e.preventDefault();
-        
-        if( e.srcElement.classList.contains( window.mcombobox.options.cls_fake_main ) ||
-            e.srcElement.classList.contains( window.mcombobox.options.cls_fake_label ) ||
-            e.srcElement.classList.contains( window.mcombobox.options.cls_fake_btn ) ) return;
+
+        if( e.currentTarget.classList != null )
+            if( e.currentTarget.classList.contains( window.mcombobox.options.cls_fake_main ) ||
+                e.currentTarget.classList.contains( window.mcombobox.options.cls_fake_label ) ||
+                e.currentTarget.classList.contains( window.mcombobox.options.cls_fake_btn ) ) return;
 
         clearTimeout( window.mcombobox.options.onhide_timeout );
 
         window.mcombobox.options.onhide_timeout = setTimeout( ()=>{ window.mcombobox._OnBodyTap_Impl(); }, 25 );
+    }
 
-    } // _OnBodyTap
-
-
-
-    _OnBodyTap_Impl()
-    {
+    _OnBodyTap_Impl() {
         if( document.mcbox_opened.length < 1 ) return;
         let _self = window.mcombobox;
 
         document.mcbox_opened.forEach((_obj)=>{
-        
             _obj.menu_hold.style["left"]       = "-9999px";
             _obj.menu_hold.style["top"]        = "-9999px";
             _obj.menu_hold.style["max-height"] = 0;
@@ -233,14 +214,10 @@ export default class MCombobox
             _obj.main.classList.remove( _self.options.cls_fake_opened );
 
             document.mcbox_opened.splice( document.mcbox_opened.indexOf(_obj), 1 );
-        
         });
 
         document.removeEventListener( "click", this._OnBodyTap );
-
-    } // _OnBodyTap_Impl
-
-
+    }
 
     _OnResize()
     {
@@ -257,17 +234,11 @@ export default class MCombobox
             document.removeEventListener( "click", _self._OnBodyTap );
 
             document.mcbox_opened.splice( document.mcbox_opened.indexOf(_obj), 1 );
-        
         });
-
-    } // _OnResize
-
-
+    }
 
     _OverrideOptions( new_options = null )
     {
         this.options = Object.assign( {}, new_options );
-
-    } // _OverrideOptions
-
-} // class MCombobox
+    }
+}
