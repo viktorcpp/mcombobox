@@ -83,7 +83,7 @@ export default class MCombobox
 
         }
 
-        select.parentElement.appendChild(_obj.menu_hold);
+        document.body.appendChild(_obj.menu_hold);
 
         let _max_height = this.options.max_menu_items * _obj.menu.getElementsByClassName( this.options.cls_fake_menu_item )[0].offsetHeight;
 
